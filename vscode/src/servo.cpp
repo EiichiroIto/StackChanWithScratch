@@ -1,5 +1,4 @@
 #include <M5Unified.h>
-#include <ESP32Servo.h>
 #include "config.h"
 #include "servo.h"
 
@@ -13,58 +12,47 @@
 #define max(x,y) ((x)>(y)?(x):(y))
 #endif
 
-Servo servo1;
-Servo servo2;
-int servo1_pos;
-int servo2_pos;
-
-void init_servo();
-void servo_set_force(int ch, int degrees);
-void servo_set(int ch, int degrees);
+const int servo_step = (servo_max - servo_min) / 180;
+int current_pos[2];
 
 void
 init_servo()
 {
-	ESP32PWM::allocateTimer(2);
-	ESP32PWM::allocateTimer(3);
-	servo1.setPeriodHertz(50);
-	servo2.setPeriodHertz(50);
-	servo1.attach(servo1Pin, minUs, maxUs);
-	servo2.attach(servo2Pin, minUs, maxUs);
-  servo_set_force(1, 90);
+  pinMode(servo1Pin, OUTPUT);
+  ledcSetup((uint8_t) 1, PWM_Hz, PWM_level);
+  ledcAttachPin(servo1Pin, 1);
+
+  pinMode(servo2Pin, OUTPUT);
+  ledcSetup((uint8_t) 2, PWM_Hz, PWM_level);
+  ledcAttachPin(servo2Pin, 2);
+
+  servo_set_force(1, 25);
   servo_set_force(2, 90);
 }
 
 void
 servo_set_force(int ch, int degrees)
 {
-  Servo &servo = (ch == 1) ? servo1 : servo2;
-  int d = max(min(degrees,180),0);
-  servo.write(d);
-  if (ch == 1) {
-    servo1_pos = d;
-  } else {
-    servo2_pos = d;
+  if (ch < 1 || ch > 2) {
+    return;
   }
+  degrees = max(min(degrees,180),0);
+  ledcWrite(ch, degrees * servo_step + servo_min);
+  current_pos[ch - 1] = degrees;
 }
 
 void
 servo_set(int ch, int degrees)
 {
-  Servo &servo = (ch == 1) ? servo1 : servo2;
-  int pos = (ch == 1) ? servo1_pos : servo2_pos;
-  int d = max(min(degrees,180),0);
-  int step = sign(d - pos);
-
-  M5.Lcd.printf("Servo%d %d->%d\n", ch, pos, d);
-
-	for (; pos != d; pos += step) {
-		servo.write(pos);
-		delay(10);
-	}
-  if (ch == 1) {
-    servo1_pos = d;
-  } else {
-    servo2_pos = d;
+  if (ch < 1 || ch > 2) {
+    return;
   }
+  degrees = max(min(degrees,180),0);
+  int pos = current_pos[ch - 1];
+  int step = sign(degrees - pos);
+	for (; pos != degrees; pos += step) {
+    ledcWrite(ch, pos * servo_step + servo_min);
+		delay(moving_delay);
+	}
+  current_pos[ch - 1] = degrees;
 }

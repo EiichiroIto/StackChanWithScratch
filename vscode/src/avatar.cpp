@@ -31,6 +31,7 @@ void avatar_say(const char *text)
     delay(500);
   }
   avatar.setMouthOpenRatio(0);
+  avatar.setSpeechText("");
 }
 
 void avatar_expression(int number)

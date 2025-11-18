@@ -16,7 +16,6 @@ void add_number(int v)
 
 void skip_eol(HardwareSerial &serial)
 {
-  serial.println("skip_eol");
   while (serial.available()) {
     serial.read();
   }
@@ -24,11 +23,14 @@ void skip_eol(HardwareSerial &serial)
 
 void parse(HardwareSerial &serial)
 {
-  serial.println("parse");
+  serial.println("Parsing ...");
   bool flag = false;
   int v = 0;
+  int c = 0;
   numcount = 0;
-  if (serial.read() != '*') {
+  c = serial.read();
+  if (c != '*') {
+    serial.printf("invalid start char=%d\r\n", c);
     skip_eol(serial);
     return;
   }
