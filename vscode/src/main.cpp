@@ -29,16 +29,17 @@ void dispatch()
       // *1,0
       // *1,25
       // *1,50
+      // *1,60
+      // *1,70
+      // *1,120
       // *1,180
       // *2,50
       // *2,90
       // *2,110
       int ch = numbers[0];
       int degrees = numbers[1];
-      if (ch == 1 && (degrees < 0 || degrees > 50)) {
-        return;
-      }
       servo_set(ch, degrees);
+      UART.printf("Servo %d to %d\n", ch, degrees);
     } else if (numbers[0] == 3) {
       // *3,72,101,108,108,111
       String text;

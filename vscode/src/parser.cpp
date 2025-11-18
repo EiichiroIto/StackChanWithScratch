@@ -23,7 +23,6 @@ void skip_eol(HardwareSerial &serial)
 
 void parse(HardwareSerial &serial)
 {
-  serial.println("Parsing ...");
   bool flag = false;
   int v = 0;
   int c = 0;

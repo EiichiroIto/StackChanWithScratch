@@ -1,5 +1,4 @@
 #include <M5Unified.h>
-#include "config.h"
 #include "servo.h"
 
 #ifndef sign
@@ -12,55 +11,91 @@
 #define max(x,y) ((x)>(y)?(x):(y))
 #endif
 
-const int servo_step = (servo_max - servo_min) / 180;
-const int pins[] = {servo1Pin, servo2Pin};
-static int current_pos[2];
-static unsigned long lasts[2];
+const uint8_t extio_address = 0x45;
+
+const uint8_t SETMODE = 0x00;
+const uint8_t SERVO_ANGLE_8B_REG = 0x50;
+
+const uint8_t DIGITAL_INPUT_MODE = 0;
+const uint8_t DIGITAL_OUTPUT_MODE = 1;
+const uint8_t ADC_INPUT_MODE = 2;
+const uint8_t SERVO_CTL_MODE = 3;
+const uint8_t RGB_LED_MODE = 4;
+
+const int Num_servos = 2;
+bool init_ok[Num_servos] = {false, false};
+int current_pos[Num_servos];
+
+#define I2C M5.In_I2C
+
+void
+servo_attach(int ch)
+{
+  int _ch = ch - 1;
+  if (ch < 1 || ch > Num_servos || init_ok[_ch]) {
+    return;
+  }
+  uint8_t mode = SERVO_CTL_MODE;
+  if (!I2C.writeRegister(extio_address, SETMODE + _ch, &mode, 1, 400000)) {
+    return;
+  }
+  init_ok[_ch] = true;
+}
+
+void
+servo_detach(int ch)
+{
+  int _ch = ch - 1;
+  if (ch < 1 || ch > Num_servos || !init_ok[_ch]) {
+    return;
+  }
+  uint8_t mode = DIGITAL_INPUT_MODE;
+  if (!I2C.writeRegister(extio_address, SETMODE + _ch, &mode, 1, 400000)) {
+    return;
+  }
+  init_ok[_ch] = false;
+}
 
 void
 init_servo()
 {
-  for (int ch = 1; ch <= 2; ch ++) {
-    pinMode(pins[ch-1], OUTPUT);
-    ledcSetup((uint8_t) ch, PWM_Hz, PWM_level);
-    ledcAttachPin(pins[ch-1], ch);
+  for (int ch = 1; ch <= Num_servos; ch ++) {
+    init_ok[ch - 1] = false;
+    servo_attach(ch);
+    servo_set_force(ch, 90);
+    delay(100);
+    servo_detach(ch);
   }
-  servo_set_force(1, 25);
-  servo_set_force(2, 90);
-  lasts[0] = millis();
-  lasts[1] = millis();
 }
 
 void
 servo_set_force(int ch, int degrees)
 {
-  if (ch < 1 || ch > 2) {
+  int _ch = ch - 1;
+  if (ch < 1 || ch > Num_servos || !init_ok[_ch]) {
     return;
   }
-  degrees = max(min(degrees,180),0);
-  ledcWrite(ch, degrees * servo_step + servo_min);
-  current_pos[ch - 1] = degrees;
-  lasts[ch-1] = millis();
+  uint8_t deg = (uint8_t) degrees;
+  I2C.writeRegister(extio_address, SERVO_ANGLE_8B_REG + _ch, &deg, 1, 400000);
+  current_pos[_ch] = degrees;
 }
 
 void
 servo_set(int ch, int degrees)
 {
-  if (ch < 1 || ch > 2) {
+  servo_attach(ch);
+  int _ch = ch - 1;
+  if (ch < 1 || ch > Num_servos || !init_ok[_ch]) {
     return;
   }
-  if( lasts[ch-1] + 1000 > millis()) {
-    return;
-  }
-  ledcAttachPin(pins[ch-1], ch);
   degrees = max(min(degrees,180),0);
-  int pos = current_pos[ch - 1];
+  int pos = current_pos[_ch];
   int step = sign(degrees - pos);
 	for (; pos != degrees; pos += step) {
-    ledcWrite(ch, pos * servo_step + servo_min);
+    uint8_t deg = (uint8_t) pos;
+    I2C.writeRegister(extio_address, SERVO_ANGLE_8B_REG + _ch, &deg, 1, 400000);
 		delay(moving_delay);
 	}
-  current_pos[ch - 1] = degrees;
-  ledcDetachPin(pins[ch-1]);
-  lasts[ch-1] = millis();
+  current_pos[_ch] = degrees;
+  servo_detach(ch);
 }
