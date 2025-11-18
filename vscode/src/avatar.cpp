@@ -37,7 +37,7 @@ void avatar_say(const char *text)
 void avatar_expression(int number)
 {
   number = number < 0 ? 0 : number;
-  number = number >= expressionsSize ? expressionsSize - 1 : number;
+  number = number >= expressionsSize ? random(1, expressionsSize) : number;
   avatar.setExpression(expressions[number]);
 }
 
