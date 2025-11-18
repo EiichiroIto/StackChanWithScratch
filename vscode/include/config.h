@@ -1,8 +1,9 @@
-const int servo1Pin = 2;
-const int servo2Pin = 5;
+#ifndef __CONFIG__
+#define __CONFIG__
 
-const int serial2RxPin = 16;
-const int serial2TxPin = 17;
+#define MQTT_PORT 1883
+#define MQTT_USER "m5stack"
+#define MQTT_PASSWORD "public"
+#define DEFAULT_MQTT_TOPIC "scratch"
 
-#define UART Serial
-#define UART2 Serial2
+#endif

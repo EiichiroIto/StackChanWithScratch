@@ -1,3 +1,6 @@
+#ifndef __AVATAR__
+#define __AVATAR__
+
 const int Expression_Neutral = 0;
 const int Expression_Angry = 1;
 const int Expression_Sleepy = 2;
@@ -9,3 +12,5 @@ extern void init_avatar();
 extern void avatar_say(const char *text);
 extern void avatar_expression(int number);
 extern void avatar_clear();
+
+#endif
