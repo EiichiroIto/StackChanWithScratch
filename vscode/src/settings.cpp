@@ -64,7 +64,7 @@ void setup_settings()
   Serial.print("\r\n");
 }
 
-#define is_letter(c) (((c)>='0' && (c)<='9')||((c)>='a'&&(c)<='z')||((c)>='A'&&(c)<='Z')||(c)=='.')
+#define is_letter(c) ((c)>='!' && (c)<='~')
 
 void print_settings()
 {
