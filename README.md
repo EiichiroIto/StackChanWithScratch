@@ -5,6 +5,9 @@
 スタックチャンは、 meganetaaan氏によりM5Stackで作られたロボットです。
 https://github.com/stack-chan/stack-chan/blob/dev/v1.0/README_ja.md
 
+オリジナルでは Javascript を用いていますが、avatar ライブラリを用いる形でスタックチャンを実装しています。
+（開発環境は vscode です）
+
 ## 山梨テクノICTメッセでのデモ
 山梨テクノICTメッセでは、このスタックチャンをScratchで制御するデモを毎年行っています。
 
